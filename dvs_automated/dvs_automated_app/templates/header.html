@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        * Sidebar styles */
+.sidebar {
+    position: fixed;
+    width: 0;
+    height: 100%;
+    background-color: #333;
+    color: #fff;
+    transition: 0.3s;
+    overflow: hidden;
+    z-index: 1000 !important;
+}
+
+.sidebar-header {
+    padding: 20px;
+    text-align: center;
+    font-size: 24px;
+}
+
+.sidebar-menu {
+    list-style-type: none;
+    padding: 0;
+}
+
+.sidebar-menu li {
+    padding: 10px;
+    text-align: center;
+}
+
+.sidebar-menu a {
+    text-decoration: none;
+    color: #fff;
+    display: block;
+}
+
+/* Content styles */
+.content {
+    margin-left: 0;
+    padding: 20px;
+    transition: 0.3s;
+}
+
+/* Button to toggle the sidebar */
+.toggle-button {
+    position: fixed;
+    top: 10px;
+    left: 10px;
+    z-index: 1;
+}
+
+/* Sidebar animation when visible */
+.sidebar.active {
+    width: 300px;
+}
+
+/* Content animation when sidebar is visible */
+.sidebar.active + .content {
+    margin-left: 300px;
+}
+.sidebar {
+    position: fixed;
+    width: 0;
+    height: 100%;
+    background-color: #333;
+    color: #fff;
+    transition: 0.3s;
+    overflow: hidden;
+}
+
+.sidebar-header {
+    padding: 20px;
+    text-align: center;
+    font-size: 24px;
+}
+
+.sidebar-menu {
+    list-style-type: none;
+    padding: 0;
+}
+
+.sidebar-menu li {
+    padding: 10px;
+    text-align: center;
+}
+
+.sidebar-menu a {
+    text-decoration: none;
+    color: #fff;
+    display: block;
+}
+
+/* Content styles */
+.content {
+    margin-left: 0;
+    padding: 20px;
+    transition: 0.3s;
+}
+
+/* Toggle button styles */
+.toggle-button {
+    position: fixed;
+    top: 10px;
+    left: 10px;
+    z-index: 1;
+    background-color: #333;
+    color: #fff;
+    border: none;
+    padding: 10px;
+    cursor: pointer;
+    font-size: 24px;
+}
+
+.menu-icon {
+    margin-right: 10px;
+}
+    </style>
+</head>
+<body>
+    <button class="toggle-button" onclick="toggleSidebar()" style='z-index:10000'>
+        <span class="menu-icon">&#9776;</span>
+    </button>
+    <div class="sidebar" id="sidebar" style="z-index: 1000">
+        <div class="sidebar-header">
+            DVS Tracker
+        </div>
+        <ul class="sidebar-menu">
+            <li><a href="{% url 'upload_csv' %}">Upload Data</a></li>
+            <li><a href="{% url 'filter_data' %}">Filter Data</a></li>
+            <li><a href="{% url 'visualize_data' %}">Visualize Data</a></li>
+        </ul>
+    </div>
+
+
+    <!--for navbar toggle button-->
+    <script>
+        function toggleSidebar() {
+        var sidebar = document.getElementById("sidebar");
+        sidebar.classList.toggle("active");
+    }
+</script>
+</body>
+</html>

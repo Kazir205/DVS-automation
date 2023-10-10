@@ -1,0 +1,19 @@
+/* Style for the container */
+.container {
+    width: 80%;
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 20px;
+    background-color: #f7f7f7;
+    border: 1px solid #ccc;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    border-radius: 5px;
+}
+
+/* Style for the title */
+.container h1 {
+    font-size: 24px;
+    font-weight: bold;
+    color: #333;
+    margin: 0 0 20px;
+}
