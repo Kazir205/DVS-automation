@@ -73,29 +73,34 @@ def upload_csv(request):
 
             context['show_table'] = True
 
+
     return render(request, 'upload_csv.html', context)
 
 
 #data filter
+
 #for giving commas between data
 def concatenate_with_seperator(series, sep=', '):
-            return sep.join(map(str, series))   
+     return sep.join(map(str, series))
 
-df = pd.read_csv('merged_listed.csv')
+df = pd.read_csv('refined.csv')
+df = df.drop_duplicates()
 
 #Data filter
 def filter_data(request):
-     
-
      context = {
           'df': df,
           'filter_title': '',
+          'names': set(df['User Name']),
+          'firms': set(df['Firm Name']),
+         'years': set(df['Year']),
+         'months': set(df['Month']),
+         'records_found': '',
      }
-     
      #here i want to read a csv file and store it in database
      if request.method == 'POST':
           if 'unfiltered' in request.POST:
-               context['df'] = df
+               context['df'] = df.head(500)
           if 'industry_filter' in request.POST:
                industry_wise = df.groupby('Business Industry')[["Company Name", "Firm Name"]].agg(concatenate_with_seperator)
                company_name = industry_wise['Company Name'].apply(lambda x: ', '.join(set(x.split(', '))))
@@ -124,9 +129,71 @@ def filter_data(request):
                legal_wise['Company Name'] = company_name
                legal_wise['Firm Name'] = firm_name
                context['df'] = legal_wise
-               context['filter_title'] = 'Filtered by Legal Wise'      
+               context['filter_title'] = 'Filtered by Legal Wise'
+
+          #filtering name, firm etc.
+          if 'selected_name' in request.POST:
+               name = request.POST['selected_name']
+               firm = request.POST['selected_firm']
+               year = request.POST['selected_year']
+               month = request.POST['selected_month']
+
+               ndf = context['df']
+
+               print(name, year, month)
+               if name:
+                    ndf = ndf[(ndf['User Name'] == name)]
+                    context['df'] = ndf
+               if firm:
+                    ndf = ndf[ndf['Firm Name'] == firm]
+               if year:
+                    year = int(year)
+                    ndf = ndf[(ndf['Year'] == year)]
+                    context['df'] = ndf
+               if month:
+                    ndf = ndf[(ndf['Month'] == month)]
+                    context['df'] = ndf
+               if name and year:
+                    year = int(year)
+                    ndf = ndf[(ndf['User Name'] == name) & (ndf['Year'] == year)]
+                    context['df'] = ndf
+               if name and year and month:
+                    year = int(year)
+                    ndf = ndf[(ndf['User Name'] == name) & (ndf['Year'] == year) & (ndf['Month'] == month)]
+                    context['df'] = ndf
+               if name and year and month and firm:
+                    year = int(year)
+                    ndf = ndf[(ndf['User Name'] == name) & (ndf['Year'] == year) & (ndf['Month'] == month) & (ndf['Firm Name'])]
+                    context['df'] = ndf
+               else:
+                    context['df'] = ndf
+
+               #for showing number of rows of filtered  data
+               rows, columns = context['df'].shape
+               record_spelling = ''
+               if rows == 1 or rows == 0:
+                    record_spelling = 'record'
+               else: 
+                    record_spelling = 'records'
+               context['records_found'] = f'{rows} {record_spelling} found'
+
+               #final data filtration with comma seperation, adding column to show numb of comp 
+               #first-grouping the columns
+               grouped_data = ndf.groupby(['User Key', 'User Name','Year', 'Month', 'Day'])[['Firm Name', 'Company Name']].agg(concatenate_with_seperator)
+
+               grouped_data = grouped_data.reset_index()
+
+               #function for counting any cell value passed as series
+               cell_value = 0
+               def count_cell_values(df_column):
+                    return df_column.str.count(', ')+1
                
-            
+               
+               num_of_companies = count_cell_values(grouped_data['Company Name'])
+               grouped_data['num_of_companies'] = num_of_companies
+
+               context['df'] = grouped_data
+     
      return render(request, 'filter_data.html', context)
 
 def chart_image_converter(chart, chart_filter):
