@@ -4,6 +4,7 @@ from io import BytesIO
 import base64
 from django.shortcuts import render, redirect
 import io
+import sqlite3
 # from .forms import CSVFileForm
 # from .models import CSVFile
 
@@ -81,16 +82,40 @@ def upload_csv(request):
 
 #for giving commas between data
 def concatenate_with_seperator(series, sep=', '):
-     return sep.join(map(str, series))
+     return sep.join(set(map(str, series)))
 
 df = pd.read_csv('refined.csv')
 df = df.drop_duplicates()
+df = df.head(100)
+
+#==============database testing =========================
+def database_test():
+     try:
+          tt = pd.read_csv('refined.csv')
+          print("reading direct csv")
+          tt.head(5)
+
+          cnn = sqlite3.connect('db.sqlite3')
+          print('connection successful')
+
+          tt.to_sql('myProject', cnn, if_exists='replace')
+          sql = 'Select * From myProject;'
+          df_read = pd.read_sql(sql, cnn)
+          print(df_read.head(10))
+     except Exception as e:
+          print(e)
+     finally:
+          if cnn:
+               cnn.close()
+     print('done')
+          
 
 #Data filter
 def filter_data(request):
      context = {
           'df': df,
           'filter_title': '',
+          'listing_status': set(df['Listed']),
           'names': set(df['User Name']),
           'firms': set(df['Firm Name']),
          'years': set(df['Year']),
@@ -98,9 +123,16 @@ def filter_data(request):
          'records_found': '',
      }
      #here i want to read a csv file and store it in database
+     td = df
      if request.method == 'POST':
           if 'unfiltered' in request.POST:
-               context['df'] = df.head(500)
+               context['df'] = df
+          if 'listed' in request.POST:
+               td1 = td[td['Listed'] == 'Y']
+               context['df'] = td1
+          if 'not-listed' in request.POST:
+               td2 = td[td['Listed'] == 'N']
+               context['df'] = td2
           if 'industry_filter' in request.POST:
                industry_wise = df.groupby('Business Industry')[["Company Name", "Firm Name"]].agg(concatenate_with_seperator)
                company_name = industry_wise['Company Name'].apply(lambda x: ', '.join(set(x.split(', '))))
@@ -133,6 +165,7 @@ def filter_data(request):
 
           #filtering name, firm etc.
           if 'selected_name' in request.POST:
+               listing_status = request.POST['listing_status']
                name = request.POST['selected_name']
                firm = request.POST['selected_firm']
                year = request.POST['selected_year']
@@ -140,7 +173,9 @@ def filter_data(request):
 
                ndf = context['df']
 
-               print(name, year, month)
+               if listing_status:
+                    ndf = ndf[(ndf['Listed'] == listing_status)]
+                    context['df'] = ndf
                if name:
                     ndf = ndf[(ndf['User Name'] == name)]
                     context['df'] = ndf
@@ -161,9 +196,9 @@ def filter_data(request):
                     year = int(year)
                     ndf = ndf[(ndf['User Name'] == name) & (ndf['Year'] == year) & (ndf['Month'] == month)]
                     context['df'] = ndf
-               if name and year and month and firm:
+               if listing_status and name and year and month and firm:
                     year = int(year)
-                    ndf = ndf[(ndf['User Name'] == name) & (ndf['Year'] == year) & (ndf['Month'] == month) & (ndf['Firm Name'])]
+                    ndf = ndf[(ndf['Listed'] == listing_status) & (ndf['User Name'] == name) & (ndf['Year'] == year) & (ndf['Month'] == month) & (ndf['Firm Name'])]
                     context['df'] = ndf
                else:
                     context['df'] = ndf
@@ -179,7 +214,7 @@ def filter_data(request):
 
                #final data filtration with comma seperation, adding column to show numb of comp 
                #first-grouping the columns
-               grouped_data = ndf.groupby(['User Key', 'User Name','Year', 'Month', 'Day'])[['Firm Name', 'Company Name']].agg(concatenate_with_seperator)
+               grouped_data = ndf.groupby(['User Key', 'User Name','Year', 'Month'])[['Firm Name', 'Company Name']].agg(concatenate_with_seperator)
 
                grouped_data = grouped_data.reset_index()
 
@@ -192,8 +227,10 @@ def filter_data(request):
                num_of_companies = count_cell_values(grouped_data['Company Name'])
                grouped_data['num_of_companies'] = num_of_companies
 
+
                context['df'] = grouped_data
-     
+               print(grouped_data)
+
      return render(request, 'filter_data.html', context)
 
 def chart_image_converter(chart, chart_filter):
@@ -222,3 +259,13 @@ def visualize_data(request):
              context = {'image_base64': chart_image_converter(df, 'Legal status')}
         
      return render(request, 'visualize_data.html', context)
+
+def admin(request):
+     grouped_data = df.groupby(['User Key', 'User Name','Year', 'Month'])[['Firm Name', 'Company Name', 'DVC Date']].agg(concatenate_with_seperator)
+
+     grouped_data = grouped_data.reset_index()
+     latest_date = grouped_data.sort_values(by='DVC Date', ascending=False)
+     context = {
+          'df': latest_date.head(5)
+     }
+     return render(request, 'admin.html', context)

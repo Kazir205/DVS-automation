@@ -104,6 +104,8 @@
 .custom-button:hover {
     background-color: #0056b3;
 }
+
+/*table styles*/
 .table-container {
     overflow-x: auto; /* Enable horizontal scrolling for the table */
     max-width: 100%; /* Ensure the container doesn't overflow its parent */
@@ -247,14 +249,15 @@
 <div class="custom-sidebar" style='height: 150px'>
     <h4 style='text-align: center'>Filter</h4>
     <div class="sidebar-container">
-        <div class="row">
+        <div class="row mt-4">
             <div class="col-md-6">
                 <form method="post" class="row">
                     {% csrf_token %}
-
-                    <div class="col-md-12">
+                    <div class="col-md-12 ml-4">
                         <div class="btn-group" role="group" aria-label="Button group">
-                            <button class="btn btn-md btn-primary" type="submit" name="unfiltered">Unfiltered</button>
+                            <button class="btn btn-md btn-primary" type="submit" name="unfiltered">Unfiltered/All</button>
+                            <button class="btn btn-md btn-primary" type="submit" name="listed">Listed</button>
+                            <button class="btn btn-md btn-primary" type="submit" name="not-listed">Not-Listed</button>
                             <button class="btn btn-md btn-primary" type="submit" name="industry_filter">Industry Wise</button>
                             <button class="btn btn-md btn-primary" type="submit" name="sector_filter">Sector Wise</button>
                             <button class="btn btn-md btn-primary" type="submit" name="legal_status_filter">Legal Status Wise</button>
@@ -266,7 +269,16 @@
                 <form method="post" class="row">
                     {% csrf_token %}
 
-                    <div class="col-md-6">
+                    <div class="col-md-4">
+                        <select name="listing_status" id="dropdown" class="form-control">
+                            <option value="">Listing Status</option>
+                            {% for lol in listing_status %}
+                                <option value="{{lol}}">{{lol}}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="col-md-4">
                         <select name="selected_name" id="dropdown" class="form-control">
                             <option value="">Select Name</option>
                             {% for name in names %}
@@ -275,7 +287,7 @@
                         </select>
                     </div>
 
-                    <div class="col-md-6">
+                    <div class="col-md-3">
                         <select name="selected_year" id="dropdown" class="form-control">
                             <option value="">Select Year</option>
                             {% for year in years %}
@@ -284,7 +296,7 @@
                         </select>
 
                     </div>
-                    <div class="col-md-6">
+                    <div class="col-md-4">
                         <select name="selected_month" id="dropdown" class="form-control">
                             <option value="">Select Month</option>
                             {% for month in months %}
@@ -292,7 +304,7 @@
                             {% endfor %}
                         </select>
                     </div>
-                    <div class="col-md-6">
+                    <div class="col-md-3">
                         <select name="selected_firm" id="dropdown" class="form-control">
                             <option value="">Select Firm</option>
                             {% for firm in firms %}
@@ -301,7 +313,7 @@
                         </select>
                     </div>
 
-                    <div class="col-md-6 p-1">
+                    <div class="col-md-4 p-1">
                         <button type="submit" class="btn btn-primary btn-block">Submit</button>
                     </div>
                 </form>

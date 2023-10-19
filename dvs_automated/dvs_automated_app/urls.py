@@ -16,12 +16,13 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
-from dvs_automated_app.views import index, upload_csv, filter_data, header, visualize_data
+from dvs_automated_app.views import index, upload_csv, filter_data, header, visualize_data, admin
 #display_csv
 
 urlpatterns = [
     # path('', index, name='index'),
-    path('', upload_csv, name='upload_csv'),
+    path('', admin, name='admin'),
+    path('upload_csv', upload_csv, name='upload_csv'),
     path('header/', header, name='header'),
     path('filter_data/', filter_data, name='filter_data'),
     path('visualize_data/', visualize_data, name='visualize_data')
